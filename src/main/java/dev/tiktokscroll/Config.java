@@ -24,6 +24,8 @@ public class Config {
     public int y = 40;
     public int width = 135;
     public float opacity = 1.0f;
+    /** Sound volume 0..2 (1 = normal). */
+    public float volume = 1.0f;
 
     public int height() { return Math.round(width / ASPECT); }
 

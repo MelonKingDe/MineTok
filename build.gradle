@@ -1,5 +1,4 @@
 plugins {
-    // Minecraft 26.x is unobfuscated: no mappings, no "mod*" configurations.
     id 'net.fabricmc.fabric-loom' version "${loom_version}"
     id 'maven-publish'
 }
@@ -8,15 +7,11 @@ version = project.mod_version
 group = project.maven_group
 base { archivesName = project.archives_base_name }
 
-repositories {
-    maven { url = uri('https://maven.dimaskama.net/releases') }
-}
-
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-    implementation "net.dimaskama:mcef-modern:${project.mcef_modern_version}"
+    // No compile dependency on the browser library: it is reached through reflection at runtime.
 }
 
 processResources {
@@ -31,39 +26,30 @@ java {
     targetCompatibility = JavaVersion.VERSION_25
 }
 
-// Prints the real MCEF Modern API into the build log (before compiling),
-// so the bridge code can be matched to it exactly.
-tasks.register('dumpMcefApi') {
+// Builds menntdev/mcef-codec (Chromium with H.264/AAC, needed for TikTok videos)
+// and puts its jar next to this mod's jar in build/libs. You need BOTH jars in your mods folder.
+tasks.register('buildCodec') {
     doLast {
-        def jarFile = configurations.compileClasspath.files.find {
-            it.name.startsWith('mcef-modern') && !it.name.contains('sources')
+        try {
+            def dir = layout.buildDirectory.dir('codec-src').get().asFile
+            if (!dir.exists()) {
+                println "git clone exit: " + new ProcessBuilder('git', 'clone', '--depth', '1',
+                        'https://github.com/menntdev/mcef-codec.git', dir.absolutePath).inheritIO().start().waitFor()
+            }
+            def props = new File(dir, 'gradle.properties')
+            if (props.exists()) println "codec gradle.properties:\n" + props.text
+            println "codec build exit: " + new ProcessBuilder('bash', '-c', 'chmod +x gradlew && ./gradlew build -x test --no-daemon -q')
+                    .directory(dir).inheritIO().start().waitFor()
+            def jar = new File(dir, 'build/libs').listFiles()?.find { it.name.endsWith('.jar') && !it.name.contains('sources') }
+            println "CODEC JAR: ${jar}"
+            if (jar) {
+                def out = layout.buildDirectory.dir('libs').get().asFile
+                out.mkdirs()
+                java.nio.file.Files.copy(jar.toPath(), new File(out, jar.name).toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            }
+        } catch (Throwable t) {
+            println "codec build failed: ${t}"
         }
-        println "=== MCEF API DUMP START ==="
-        println "MCEF jar: ${jarFile}"
-        if (jarFile != null) {
-            def zip = new java.util.zip.ZipFile(jarFile)
-            def classes = zip.entries().toList()
-                .findAll { it.name.startsWith('net/dimaskama/mcef/api/') && it.name.endsWith('.class') && !(it.name =~ /\$\d/) }
-                .collect { it.name.replace('.class', '').replace('/', '.') }
-            zip.close()
-            println "classes: ${classes}"
-            def pb = new ProcessBuilder(['javap', '-p', '-cp', jarFile.absolutePath] + classes)
-            pb.redirectErrorStream(true)
-            println pb.start().inputStream.text
-        }
-        def cp = configurations.compileClasspath.files.collect { it.absolutePath }.join(File.pathSeparator)
-        def pb2 = new ProcessBuilder(['javap', '-p', '-cp', cp,
-            'net.minecraft.client.gui.GuiGraphicsExtractor',
-            'net.minecraft.client.input.MouseButtonEvent',
-            'net.minecraft.client.input.MouseButtonInfo'])
-        pb2.redirectErrorStream(true)
-        pb2.start().inputStream.text.readLines()
-            .findAll { it.contains('blit') || it.contains('GpuTextureView') || it.contains('MouseButton') || it.contains('class') || it.contains('record') }
-            .each { println it }
-        def pb3 = new ProcessBuilder(['javap', '-p', '-cp', cp, 'com.mojang.blaze3d.systems.RenderSystem'])
-        pb3.redirectErrorStream(true)
-        pb3.start().inputStream.text.readLines().findAll { it.toLowerCase().contains('sampler') }.each { println it }
-        println "=== MCEF API DUMP END ==="
     }
 }
-tasks.named('compileJava') { dependsOn 'dumpMcefApi' }
+tasks.named('build') { finalizedBy 'buildCodec' }

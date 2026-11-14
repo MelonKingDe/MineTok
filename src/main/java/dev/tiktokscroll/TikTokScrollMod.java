@@ -104,7 +104,9 @@ public class TikTokScrollMod implements ClientModInitializer {
         // The browser is kept alive (so audio keeps working) whenever we're in a world.
         if (mc.level != null) {
             boolean autoNow = c.autoScroll && isActivelyPlaying() && mc.gui.screen() == null;
-            McefBridge.tick(autoNow);
+            McefBridge.tick(autoNow, c.visible);
+        } else {
+            McefBridge.silence();
         }
     }
 }

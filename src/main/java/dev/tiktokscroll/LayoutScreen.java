@@ -18,7 +18,7 @@ public class LayoutScreen extends Screen {
     private static final int HANDLE = 10;
     private static final int MIN_W = 70, MAX_W = 400;
 
-    private boolean interact = false;
+    private boolean interact = true;   // open directly in interact mode (for logging in)
     private boolean dragging, resizing;
     private double grabDx, grabDy;
     private Button modeButton;
@@ -27,6 +27,9 @@ public class LayoutScreen extends Screen {
 
     @Override
     protected void init() {
+        McefBridge.setFocus(interact);
+        addRenderableWidget(Button.builder(Component.literal("ESC = close   |   click the video to log in"), b -> {})
+                .bounds(this.width / 2 - 140, this.height - 52, 280, 20).build()).active = false;
         modeButton = addRenderableWidget(Button.builder(modeText(), b -> {
             interact = !interact;
             McefBridge.setFocus(interact);

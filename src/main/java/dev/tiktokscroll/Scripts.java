@@ -30,6 +30,7 @@ public final class Scripts {
         if (b) { b.click(); return; }
         key('ArrowDown', 40);
       };
+      S.resume = function(){ const v = current(); if (v) v.play(); };
       S.prev = function(){
         S.lastSkip = Date.now();
         const b = document.querySelector('button[data-e2e="arrow-left"]');
@@ -50,6 +51,8 @@ public final class Scripts {
     public static String setAuto(boolean on) {
         return "window.__tts && (window.__tts.auto = " + on + ");";
     }
+    public static final String PAUSE = "document.querySelectorAll('video').forEach(function(v){v.pause();});";
+    public static final String RESUME = "window.__tts && window.__tts.resume();";
     public static final String NEXT = "window.__tts && window.__tts.next();";
     public static final String PREV = "window.__tts && window.__tts.prev();";
 }
