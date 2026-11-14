@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "tiktokscroll",
+  "version": "${version}",
+  "name": "TikTok Scroll",
+  "description": "Shows TikTok in a movable, resizable in-game overlay and auto-scrolls while you are actively playing.",
+  "authors": ["You"],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": { "client": ["dev.tiktokscroll.TikTokScrollMod"] },
+  "depends": {
+    "fabricloader": ">=0.20.1",
+    "minecraft": "~26.2",
+    "java": ">=25",
+    "fabric-api": "*",
+    "mcef-modern": "*"
+  }
+}

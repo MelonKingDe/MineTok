@@ -1,0 +1,13 @@
+{
+  "key.category.tiktokscroll": "TikTok Scroll",
+  "key.tiktokscroll.toggle": "Show/Hide TikTok",
+  "key.tiktokscroll.next": "Next Video",
+  "key.tiktokscroll.prev": "Previous Video",
+  "key.tiktokscroll.auto": "Toggle Auto-Scroll",
+  "key.tiktokscroll.layout": "Edit / Interact with TikTok",
+  "tiktokscroll.auto.on": "TikTok auto-scroll: ON",
+  "tiktokscroll.auto.off": "TikTok auto-scroll: OFF",
+  "tiktokscroll.mode.layout": "Mode: Move / Resize",
+  "tiktokscroll.mode.interact": "Mode: Interact (click, log in)",
+  "tiktokscroll.loading": "Loading browser..."
+}
