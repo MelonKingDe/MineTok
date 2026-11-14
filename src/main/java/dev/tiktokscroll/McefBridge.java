@@ -66,7 +66,7 @@ public final class McefBridge {
     public static void run(String js) {
         if (browser == null) return;
         try {
-            Object cef = browser.getCefBrowser();
+            Object cef = cef();
             String url = (String) cef.getClass().getMethod("getURL").invoke(cef);
             cef.getClass().getMethod("executeJavaScript", String.class, String.class, int.class).invoke(cef, js, url, 0);
         } catch (Throwable t) {
@@ -74,9 +74,14 @@ public final class McefBridge {
         }
     }
 
+    /** org.cef.browser.CefBrowser as Object (jcef is not on the compile classpath). */
+    private static Object cef() throws Exception {
+        return MCEFBrowser.class.getMethod("getCefBrowser").invoke(browser);
+    }
+
     private static void setFrameRate(int fps) {
         try {
-            Object cef = browser.getCefBrowser();
+            Object cef = cef();
             cef.getClass().getMethod("setWindowlessFrameRate", int.class).invoke(cef, fps);
         } catch (Throwable ignored) {}
     }
@@ -157,11 +162,22 @@ public final class McefBridge {
         return Class.forName("net.minecraft.client.renderer.RenderPipelines").getField("GUI_TEXTURED").get(null);
     }
 
+    private static Object samplerCached;
+
     private static Object sampler() throws Exception {
+        if (samplerCached != null) return samplerCached;
         Class<?> rs = Class.forName("com.mojang.blaze3d.systems.RenderSystem");
-        Object cache = rs.getMethod("getSamplerCache").invoke(null);
         Class<?> fm = Class.forName("com.mojang.blaze3d.textures.FilterMode");
         Object linear = fm.getField("LINEAR").get(null);
-        return cache.getClass().getMethod("getClampToEdge", fm).invoke(cache, linear);
+        try {
+            Object cache = rs.getMethod("getSamplerCache").invoke(null);
+            samplerCached = cache.getClass().getMethod("getClampToEdge", fm).invoke(cache, linear);
+            return samplerCached;
+        } catch (Throwable t) {
+            TikTokScrollMod.LOGGER.error("Sampler lookup failed ({}). RenderSystem methods mentioning sampler:", t.toString());
+            for (Method m : rs.getMethods())
+                if (m.getName().toLowerCase().contains("sampler")) TikTokScrollMod.LOGGER.error("  {}", m);
+            throw t instanceof Exception ? (Exception) t : new RuntimeException(t);
+        }
     }
 }

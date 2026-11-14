@@ -60,6 +60,9 @@ tasks.register('dumpMcefApi') {
         pb2.start().inputStream.text.readLines()
             .findAll { it.contains('blit') || it.contains('GpuTextureView') || it.contains('MouseButton') || it.contains('class') || it.contains('record') }
             .each { println it }
+        def pb3 = new ProcessBuilder(['javap', '-p', '-cp', cp, 'com.mojang.blaze3d.systems.RenderSystem'])
+        pb3.redirectErrorStream(true)
+        pb3.start().inputStream.text.readLines().findAll { it.toLowerCase().contains('sampler') }.each { println it }
         println "=== MCEF API DUMP END ==="
     }
 }
