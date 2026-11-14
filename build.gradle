@@ -51,6 +51,15 @@ tasks.register('dumpMcefApi') {
             pb.redirectErrorStream(true)
             println pb.start().inputStream.text
         }
+        def cp = configurations.compileClasspath.files.collect { it.absolutePath }.join(File.pathSeparator)
+        def pb2 = new ProcessBuilder(['javap', '-p', '-cp', cp,
+            'net.minecraft.client.gui.GuiGraphicsExtractor',
+            'net.minecraft.client.input.MouseButtonEvent',
+            'net.minecraft.client.input.MouseButtonInfo'])
+        pb2.redirectErrorStream(true)
+        pb2.start().inputStream.text.readLines()
+            .findAll { it.contains('blit') || it.contains('GpuTextureView') || it.contains('MouseButton') || it.contains('class') || it.contains('record') }
+            .each { println it }
         println "=== MCEF API DUMP END ==="
     }
 }

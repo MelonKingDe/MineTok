@@ -60,6 +60,8 @@ public class TikTokScrollMod implements ClientModInitializer {
             g.fill(c.x, c.y, c.x + c.width, c.y + c.height(), 0xAA000000);
             int cy = c.y + c.height() / 2;
             g.fill(c.x + 10, cy - 2, c.x + c.width - 10, cy + 2, 0xFF555555);
+            int full = c.width - 20;
+            g.fill(c.x + 10, cy - 2, c.x + 10 + Math.round(full * McefBridge.progress()), cy + 2, 0xFFFFFFFF);
         }
     }
 

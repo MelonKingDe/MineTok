@@ -29,6 +29,7 @@ public class LayoutScreen extends Screen {
     protected void init() {
         modeButton = addRenderableWidget(Button.builder(modeText(), b -> {
             interact = !interact;
+            McefBridge.setFocus(interact);
             b.setMessage(modeText());
         }).bounds(this.width / 2 - 100, this.height - 28, 200, 20).build());
     }
@@ -69,7 +70,7 @@ public class LayoutScreen extends Screen {
         double mx = e.x(), my = e.y();
         Config c = Config.INSTANCE;
         if (interact) {
-            if (inside(mx, my)) { McefBridge.mouseButton(bx(mx), by(my), e.button(), true); return true; }
+            if (inside(mx, my)) { McefBridge.mouseClicked(e, dbl, bx(mx), by(my)); return true; }
             return false;
         }
         int x2 = c.x + c.width, y2 = c.y + c.height();
@@ -96,7 +97,7 @@ public class LayoutScreen extends Screen {
 
     @Override
     public boolean mouseReleased(MouseButtonEvent e) {
-        if (interact) { McefBridge.mouseButton(bx(e.x()), by(e.y()), e.button(), false); }
+        if (interact) { McefBridge.mouseReleased(e, bx(e.x()), by(e.y())); }
         if (dragging || resizing) Config.save();
         dragging = resizing = false;
         return super.mouseReleased(e);
@@ -122,7 +123,7 @@ public class LayoutScreen extends Screen {
     @Override
     public boolean keyPressed(KeyEvent e) {
         if (interact && e.key() != 256 /* ESC */) {
-            McefBridge.keyPress(e.key(), e.scancode(), e.modifiers(), true);
+            McefBridge.keyPressed(e);
             return true;
         }
         return super.keyPressed(e);
@@ -130,15 +131,15 @@ public class LayoutScreen extends Screen {
 
     @Override
     public boolean keyReleased(KeyEvent e) {
-        if (interact) McefBridge.keyPress(e.key(), e.scancode(), e.modifiers(), false);
+        if (interact) McefBridge.keyReleased(e);
         return super.keyReleased(e);
     }
 
     @Override
     public boolean charTyped(CharacterEvent e) {
-        if (interact) { McefBridge.charTyped((char) e.codepoint(), 0); return true; }
+        if (interact) { McefBridge.charTyped(e); return true; }
         return super.charTyped(e);
     }
 
-    @Override public void removed() { Config.save(); }
+    @Override public void removed() { McefBridge.setFocus(false); Config.save(); }
 }
