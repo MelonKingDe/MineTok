@@ -1,0 +1,59 @@
+name: Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: current
+
+      - name: Build
+        id: build
+        continue-on-error: true
+        run: gradle build --no-daemon
+
+      # Prints the real MCEF Modern API so the code can be matched to it exactly.
+      - name: Dump MCEF API
+        run: |
+          JAR=$(find ~/.gradle -name 'mcef-modern-*.jar' ! -name '*-sources.jar' | head -n1)
+          echo "MCEF jar: $JAR"
+          jar tf "$JAR" | grep '^net/dimaskama/mcef/' | grep '\.class$' | sed 's/\.class$//' | tr '/' '.' > classes.txt || true
+          echo "---- classes ----"; cat classes.txt
+          javap -p -cp "$JAR" $(grep -v '\$[0-9]' classes.txt) > mcef-api.txt || true
+          echo "---- API ----"; cat mcef-api.txt
+
+      - name: Upload MCEF API dump
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcef-api
+          path: mcef-api.txt
+
+      - name: Upload mod jar
+        if: steps.build.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tiktok-scroll-jar
+          path: |
+            build/libs/*.jar
+            !build/libs/*-sources.jar
+
+      - name: Fail if build failed
+        if: steps.build.outcome != 'success'
+        run: exit 1
