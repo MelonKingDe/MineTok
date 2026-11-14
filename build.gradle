@@ -30,3 +30,28 @@ java {
     sourceCompatibility = JavaVersion.VERSION_25
     targetCompatibility = JavaVersion.VERSION_25
 }
+
+// Prints the real MCEF Modern API into the build log (before compiling),
+// so the bridge code can be matched to it exactly.
+tasks.register('dumpMcefApi') {
+    doLast {
+        def jarFile = configurations.compileClasspath.files.find {
+            it.name.startsWith('mcef-modern') && !it.name.contains('sources')
+        }
+        println "=== MCEF API DUMP START ==="
+        println "MCEF jar: ${jarFile}"
+        if (jarFile != null) {
+            def zip = new java.util.zip.ZipFile(jarFile)
+            def classes = zip.entries().toList()
+                .findAll { it.name.startsWith('net/dimaskama/mcef/api/') && it.name.endsWith('.class') && !(it.name =~ /\$\d/) }
+                .collect { it.name.replace('.class', '').replace('/', '.') }
+            zip.close()
+            println "classes: ${classes}"
+            def pb = new ProcessBuilder(['javap', '-p', '-cp', jarFile.absolutePath] + classes)
+            pb.redirectErrorStream(true)
+            println pb.start().inputStream.text
+        }
+        println "=== MCEF API DUMP END ==="
+    }
+}
+tasks.named('compileJava') { dependsOn 'dumpMcefApi' }
