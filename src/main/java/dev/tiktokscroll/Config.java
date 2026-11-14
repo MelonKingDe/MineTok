@@ -11,7 +11,6 @@ import java.nio.file.Path;
 public class Config {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path FILE = FabricLoader.getInstance().getConfigDir().resolve("tiktokscroll.json");
-    public static final float ASPECT = 9f / 16f; // width / height
 
     public static Config INSTANCE = new Config();
 
@@ -35,7 +34,16 @@ public class Config {
     /** Set true if red and blue look swapped. */
     public boolean swapRedBlue = false;
 
-    public int height() { return Math.round(width / ASPECT); }
+    /** Crop of the 540x960 browser page, in browser pixels: hides TikTok's sidebar, top bar and player controls. */
+    public int cropLeft = 82;
+    public int cropTop = 72;
+    public int cropRight = 0;
+    public int cropBottom = 80;
+
+    public int cropW() { return Math.max(50, ChromeBridge.BROWSER_W - cropLeft - cropRight); }
+    public int cropH() { return Math.max(50, ChromeBridge.BROWSER_H - cropTop - cropBottom); }
+    /** Overlay height follows the cropped aspect ratio. */
+    public int height() { return Math.round(width * (float) cropH() / cropW()); }
 
     public static void load() {
         try {

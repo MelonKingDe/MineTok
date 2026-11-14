@@ -18,7 +18,7 @@ O show/hide | ] next | [ previous | \ toggle auto-scroll | K layout / interact s
 Interact (default): click, log in, like. Move/Resize: drag video / bottom-right square / mouse wheel.
 
 ## Config: config/tiktokscroll.json
-activeWindowSeconds, volume (0..1), opacity, url, browser ("brave" default, "chrome", "edge", "auto"), chromePath, headless, swapRedBlue.
+cropLeft/cropTop/cropRight/cropBottom (hide TikTok UI around the video), activeWindowSeconds, volume (0..1), opacity, url, browser ("brave" default, "chrome", "edge", "auto"), chromePath, headless, swapRedBlue.
 If the video has no sound in headless mode, set "headless": false (Chrome then runs in a window off-screen).
 
 ## Build

@@ -64,8 +64,8 @@ public class LayoutScreen extends Screen {
         return mx >= c.x && mx <= c.x + c.width && my >= c.y && my <= c.y + c.height();
     }
 
-    private int bx(double mx) { Config c = Config.INSTANCE; return (int) ((mx - c.x) * ChromeBridge.BROWSER_W / c.width); }
-    private int by(double my) { Config c = Config.INSTANCE; return (int) ((my - c.y) * ChromeBridge.BROWSER_H / c.height()); }
+    private int bx(double mx) { return ChromeBridge.toBx(mx); }
+    private int by(double my) { return ChromeBridge.toBy(my); }
 
     @Override
     public boolean mouseClicked(MouseButtonEvent e, boolean dbl) {

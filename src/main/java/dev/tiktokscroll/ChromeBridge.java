@@ -272,6 +272,16 @@ public final class ChromeBridge {
     public static void next() { run(Scripts.NEXT); }
     public static void prev() { run(Scripts.PREV); }
 
+    /** Overlay mouse position -> browser page pixel (accounts for the crop). */
+    public static int toBx(double mouseX) {
+        Config c = Config.INSTANCE;
+        return c.cropLeft + (int) ((mouseX - c.x) * c.cropW() / c.width);
+    }
+    public static int toBy(double mouseY) {
+        Config c = Config.INSTANCE;
+        return c.cropTop + (int) ((mouseY - c.y) * c.cropH() / c.height());
+    }
+
     // ------------------------------------------------------------------ input (browser pixels)
     public static void setFocus(boolean f) {}
 
@@ -363,7 +373,10 @@ public final class ChromeBridge {
             if (blitMethod == null) return;
             Object pipeline = Class.forName("net.minecraft.client.renderer.RenderPipelines").getField("GUI_TEXTURED").get(null);
             // blit(pipeline, id, x, y, u, v, width, height, uWidth, vHeight, textureWidth, textureHeight)
-            blitMethod.invoke(g, pipeline, TEX_ID, x, y, 0f, 0f, w, h, texW, texH, texW, texH);
+            Config c = Config.INSTANCE;
+            float f = texW / (float) BROWSER_W;   // texture may differ from 540x960
+            blitMethod.invoke(g, pipeline, TEX_ID, x, y, c.cropLeft * f, c.cropTop * f, w, h,
+                    Math.round(c.cropW() * f), Math.round(c.cropH() * f), texW, texH);
         } catch (Throwable t) {
             TikTokScrollMod.LOGGER.error("Drawing failed", t);
             blitMethod = null; blitSearched = false;
