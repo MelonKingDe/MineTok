@@ -2,7 +2,7 @@ package dev.tiktokscroll;
 
 import net.dimaskama.mcef.api.MCEFApi;
 import net.dimaskama.mcef.api.MCEFBrowser;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 /**
  * ALL calls into MCEF Modern live in this one class.
@@ -56,7 +56,7 @@ public final class McefBridge {
     }
 
     /** Draw the browser texture scaled into the given GUI rectangle. */
-    public static void draw(GuiGraphics g, int x, int y, int w, int h, float alpha) {
+    public static void draw(GuiGraphicsExtractor g, int x, int y, int w, int h, float alpha) {
         if (browser == null) return;
         // ADAPT: draw the browser's texture. MCEF Modern 26.x provides a texture/texture view
         // that can be blitted. Example shape of the call (pipeline + texture id + dest rect + UV):

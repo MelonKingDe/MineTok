@@ -1,6 +1,6 @@
 package dev.tiktokscroll;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.CharacterEvent;
@@ -38,15 +38,19 @@ public class LayoutScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics g, int mouseX, int mouseY, float partial) {
+    public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partial) {
         Config c = Config.INSTANCE;
         TikTokScrollMod.drawOverlay(g, c);
         if (!interact) {
             int x2 = c.x + c.width, y2 = c.y + c.height();
-            g.renderOutline(c.x, c.y, c.width, c.height(), 0xFFFFFFFF);
+            // outline (4 thin rectangles)
+            g.fill(c.x, c.y, x2, c.y + 1, 0xFFFFFFFF);
+            g.fill(c.x, y2 - 1, x2, y2, 0xFFFFFFFF);
+            g.fill(c.x, c.y, c.x + 1, y2, 0xFFFFFFFF);
+            g.fill(x2 - 1, c.y, x2, y2, 0xFFFFFFFF);
             g.fill(x2 - HANDLE, y2 - HANDLE, x2, y2, 0xFFFFFFFF);
         }
-        super.render(g, mouseX, mouseY, partial);
+        super.extractRenderState(g, mouseX, mouseY, partial);
     }
 
     @Override public boolean isPauseScreen() { return false; }

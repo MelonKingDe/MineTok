@@ -4,7 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.minecraft.client.KeyMapping;
@@ -47,23 +47,24 @@ public class TikTokScrollMod implements ClientModInitializer {
                 Identifier.fromNamespaceAndPath(ID, "overlay"), (graphics, tickCounter) -> {
                     Config c = Config.INSTANCE;
                     if (!c.visible) return;
-                    if (Minecraft.getInstance().screen instanceof LayoutScreen) return; // the screen draws it itself
+                    if (Minecraft.getInstance().gui.screen() instanceof LayoutScreen) return; // the screen draws it itself
                     drawOverlay(graphics, c);
                 });
     }
 
-    static void drawOverlay(net.minecraft.client.gui.GuiGraphics g, Config c) {
+    static void drawOverlay(net.minecraft.client.gui.GuiGraphicsExtractor g, Config c) {
         if (McefBridge.isReady()) {
             McefBridge.draw(g, c.x, c.y, c.width, c.height(), c.opacity);
         } else {
+            // placeholder while Chromium loads / downloads
             g.fill(c.x, c.y, c.x + c.width, c.y + c.height(), 0xAA000000);
-            g.drawString(Minecraft.getInstance().font, Component.translatable("tiktokscroll.loading"),
-                    c.x + 6, c.y + 6, 0xFFFFFFFF);
+            int cy = c.y + c.height() / 2;
+            g.fill(c.x + 10, cy - 2, c.x + c.width - 10, cy + 2, 0xFF555555);
         }
     }
 
     private static KeyMapping reg(String name, int key) {
-        return KeyBindingHelper.registerKeyBinding(
+        return KeyMappingHelper.registerKeyMapping(
                 new KeyMapping("key." + ID + "." + name, InputConstants.Type.KEYSYM, key, CATEGORY));
     }
 
@@ -73,7 +74,7 @@ public class TikTokScrollMod implements ClientModInitializer {
 
     private static void trackActivity(Minecraft mc) {
         var p = mc.player;
-        if (p == null || mc.screen != null || mc.isPaused()) return;
+        if (p == null || mc.gui.screen() != null || mc.isPaused()) return;
         Vec3 pos = p.position();
         boolean moved = pos.distanceToSqr(lastPos) > 1.0E-4;
         boolean looked = Math.abs(p.getYRot() - lastYaw) > 0.01f || Math.abs(p.getXRot() - lastPitch) > 0.01f;
@@ -89,18 +90,18 @@ public class TikTokScrollMod implements ClientModInitializer {
         while (auto.consumeClick()) {
             c.autoScroll = !c.autoScroll; Config.save();
             if (mc.player != null)
-                mc.player.displayClientMessage(Component.translatable(
-                        c.autoScroll ? "tiktokscroll.auto.on" : "tiktokscroll.auto.off"), true);
+                mc.player.sendSystemMessage(Component.translatable(
+                        c.autoScroll ? "tiktokscroll.auto.on" : "tiktokscroll.auto.off"));
         }
         while (next.consumeClick()) McefBridge.next();
         while (prev.consumeClick()) McefBridge.prev();
-        while (layout.consumeClick()) { if (mc.screen == null) mc.setScreen(new LayoutScreen()); }
+        while (layout.consumeClick()) { if (mc.gui.screen() == null) mc.gui.setScreen(new LayoutScreen()); }
 
         trackActivity(mc);
 
         // The browser is kept alive (so audio keeps working) whenever we're in a world.
         if (mc.level != null) {
-            boolean autoNow = c.autoScroll && isActivelyPlaying() && mc.screen == null;
+            boolean autoNow = c.autoScroll && isActivelyPlaying() && mc.gui.screen() == null;
             McefBridge.tick(autoNow);
         }
     }
