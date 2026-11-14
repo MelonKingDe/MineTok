@@ -27,12 +27,12 @@ public class LayoutScreen extends Screen {
 
     @Override
     protected void init() {
-        McefBridge.setFocus(interact);
+        ChromeBridge.setFocus(interact);
         addRenderableWidget(Button.builder(Component.literal("ESC = close   |   click the video to log in"), b -> {})
                 .bounds(this.width / 2 - 140, this.height - 52, 280, 20).build()).active = false;
         modeButton = addRenderableWidget(Button.builder(modeText(), b -> {
             interact = !interact;
-            McefBridge.setFocus(interact);
+            ChromeBridge.setFocus(interact);
             b.setMessage(modeText());
         }).bounds(this.width / 2 - 100, this.height - 28, 200, 20).build());
     }
@@ -64,8 +64,8 @@ public class LayoutScreen extends Screen {
         return mx >= c.x && mx <= c.x + c.width && my >= c.y && my <= c.y + c.height();
     }
 
-    private int bx(double mx) { Config c = Config.INSTANCE; return (int) ((mx - c.x) * McefBridge.BROWSER_W / c.width); }
-    private int by(double my) { Config c = Config.INSTANCE; return (int) ((my - c.y) * McefBridge.BROWSER_H / c.height()); }
+    private int bx(double mx) { Config c = Config.INSTANCE; return (int) ((mx - c.x) * ChromeBridge.BROWSER_W / c.width); }
+    private int by(double my) { Config c = Config.INSTANCE; return (int) ((my - c.y) * ChromeBridge.BROWSER_H / c.height()); }
 
     @Override
     public boolean mouseClicked(MouseButtonEvent e, boolean dbl) {
@@ -73,7 +73,7 @@ public class LayoutScreen extends Screen {
         double mx = e.x(), my = e.y();
         Config c = Config.INSTANCE;
         if (interact) {
-            if (inside(mx, my)) { McefBridge.mouseClicked(e, dbl, bx(mx), by(my)); return true; }
+            if (inside(mx, my)) { ChromeBridge.mouseClicked(e, dbl, bx(mx), by(my)); return true; }
             return false;
         }
         int x2 = c.x + c.width, y2 = c.y + c.height();
@@ -85,7 +85,7 @@ public class LayoutScreen extends Screen {
     @Override
     public boolean mouseDragged(MouseButtonEvent e, double dx, double dy) {
         Config c = Config.INSTANCE;
-        if (interact) { McefBridge.mouseMove(bx(e.x()), by(e.y())); return true; }
+        if (interact) { ChromeBridge.mouseMove(bx(e.x()), by(e.y())); return true; }
         if (dragging) {
             c.x = (int) Math.max(0, Math.min(this.width - c.width, e.x() - grabDx));
             c.y = (int) Math.max(0, Math.min(this.height - c.height(), e.y() - grabDy));
@@ -100,7 +100,7 @@ public class LayoutScreen extends Screen {
 
     @Override
     public boolean mouseReleased(MouseButtonEvent e) {
-        if (interact) { McefBridge.mouseReleased(e, bx(e.x()), by(e.y())); }
+        if (interact) { ChromeBridge.mouseReleased(e, bx(e.x()), by(e.y())); }
         if (dragging || resizing) Config.save();
         dragging = resizing = false;
         return super.mouseReleased(e);
@@ -108,14 +108,14 @@ public class LayoutScreen extends Screen {
 
     @Override
     public void mouseMoved(double mx, double my) {
-        if (interact && inside(mx, my)) McefBridge.mouseMove(bx(mx), by(my));
+        if (interact && inside(mx, my)) ChromeBridge.mouseMove(bx(mx), by(my));
     }
 
     @Override
     public boolean mouseScrolled(double mx, double my, double sx, double sy) {
         Config c = Config.INSTANCE;
         if (interact) {
-            if (inside(mx, my)) { McefBridge.mouseWheel(bx(mx), by(my), sy); return true; }
+            if (inside(mx, my)) { ChromeBridge.mouseWheel(bx(mx), by(my), sy); return true; }
             return false;
         }
         c.width = (int) Math.max(MIN_W, Math.min(MAX_W, c.width + sy * 10));
@@ -126,7 +126,7 @@ public class LayoutScreen extends Screen {
     @Override
     public boolean keyPressed(KeyEvent e) {
         if (interact && e.key() != 256 /* ESC */) {
-            McefBridge.keyPressed(e);
+            ChromeBridge.keyPressed(e);
             return true;
         }
         return super.keyPressed(e);
@@ -134,15 +134,15 @@ public class LayoutScreen extends Screen {
 
     @Override
     public boolean keyReleased(KeyEvent e) {
-        if (interact) McefBridge.keyReleased(e);
+        if (interact) ChromeBridge.keyReleased(e);
         return super.keyReleased(e);
     }
 
     @Override
     public boolean charTyped(CharacterEvent e) {
-        if (interact) { McefBridge.charTyped(e); return true; }
+        if (interact) { ChromeBridge.charTyped(e); return true; }
         return super.charTyped(e);
     }
 
-    @Override public void removed() { McefBridge.setFocus(false); Config.save(); }
+    @Override public void removed() { ChromeBridge.setFocus(false); Config.save(); }
 }

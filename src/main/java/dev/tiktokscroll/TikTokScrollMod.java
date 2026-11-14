@@ -41,7 +41,7 @@ public class TikTokScrollMod implements ClientModInitializer {
         layout = reg("layout", GLFW.GLFW_KEY_K);
 
         ClientTickEvents.END_CLIENT_TICK.register(TikTokScrollMod::tick);
-        ClientLifecycleEvents.CLIENT_STOPPING.register(mc -> McefBridge.close());
+        ClientLifecycleEvents.CLIENT_STOPPING.register(mc -> ChromeBridge.close());
 
         HudElementRegistry.attachElementAfter(VanillaHudElements.CHAT,
                 Identifier.fromNamespaceAndPath(ID, "overlay"), (graphics, tickCounter) -> {
@@ -53,15 +53,15 @@ public class TikTokScrollMod implements ClientModInitializer {
     }
 
     static void drawOverlay(net.minecraft.client.gui.GuiGraphicsExtractor g, Config c) {
-        if (McefBridge.isReady()) {
-            McefBridge.draw(g, c.x, c.y, c.width, c.height(), c.opacity);
+        if (ChromeBridge.isReady()) {
+            ChromeBridge.draw(g, c.x, c.y, c.width, c.height(), c.opacity);
         } else {
             // placeholder while Chromium loads / downloads
             g.fill(c.x, c.y, c.x + c.width, c.y + c.height(), 0xAA000000);
             int cy = c.y + c.height() / 2;
             g.fill(c.x + 10, cy - 2, c.x + c.width - 10, cy + 2, 0xFF555555);
             int full = c.width - 20;
-            g.fill(c.x + 10, cy - 2, c.x + 10 + Math.round(full * McefBridge.progress()), cy + 2, 0xFFFFFFFF);
+            g.fill(c.x + 10, cy - 2, c.x + 10 + Math.round(full * ChromeBridge.progress()), cy + 2, 0xFFFFFFFF);
         }
     }
 
@@ -95,8 +95,8 @@ public class TikTokScrollMod implements ClientModInitializer {
                 mc.player.sendSystemMessage(Component.translatable(
                         c.autoScroll ? "tiktokscroll.auto.on" : "tiktokscroll.auto.off"));
         }
-        while (next.consumeClick()) McefBridge.next();
-        while (prev.consumeClick()) McefBridge.prev();
+        while (next.consumeClick()) ChromeBridge.next();
+        while (prev.consumeClick()) ChromeBridge.prev();
         while (layout.consumeClick()) { if (mc.gui.screen() == null) mc.gui.setScreen(new LayoutScreen()); }
 
         trackActivity(mc);
@@ -104,9 +104,9 @@ public class TikTokScrollMod implements ClientModInitializer {
         // The browser is kept alive (so audio keeps working) whenever we're in a world.
         if (mc.level != null) {
             boolean autoNow = c.autoScroll && isActivelyPlaying() && mc.gui.screen() == null;
-            McefBridge.tick(autoNow, c.visible);
+            ChromeBridge.tick(autoNow, c.visible);
         } else {
-            McefBridge.silence();
+            ChromeBridge.silence();
         }
     }
 }

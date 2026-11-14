@@ -8,7 +8,7 @@ public final class Scripts {
     public static final String BOOT = """
     (function(){
       if (window.__tts) return;
-      const S = window.__tts = { auto:false, lastSkip:0 };
+      const S = window.__tts = { auto:false, lastSkip:0, vol:1 };
       function current(){
         const cy = innerHeight/2; let best=null, bd=1e9;
         for (const v of document.querySelectorAll('video')) {
@@ -40,6 +40,7 @@ public final class Scripts {
       setInterval(function(){
         const v = current();
         if (!v) return;
+        try { if (v.volume !== S.vol) v.volume = S.vol; } catch(e){}
         v.loop = !S.auto;                       // TikTok loops videos; we remove the loop while auto-scroll is active
         if (!S.auto) return;
         const done = v.ended || (v.duration > 0 && v.currentTime >= v.duration - 0.12);
@@ -48,8 +49,9 @@ public final class Scripts {
     })();
     """;
 
-    public static String setAuto(boolean on) {
-        return "window.__tts && (window.__tts.auto = " + on + ");";
+    public static String setAuto(boolean on, float vol) {
+        float v = Math.max(0f, Math.min(1f, vol));
+        return "window.__tts && (window.__tts.auto = " + on + ", window.__tts.vol = " + v + ");";
     }
     public static final String PAUSE = "document.querySelectorAll('video').forEach(function(v){v.pause();});";
     public static final String RESUME = "window.__tts && window.__tts.resume();";

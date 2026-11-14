@@ -24,8 +24,16 @@ public class Config {
     public int y = 40;
     public int width = 135;
     public float opacity = 1.0f;
-    /** Sound volume 0..2 (1 = normal). */
+    /** Sound volume 0..1 (applied to the TikTok video element). */
     public float volume = 1.0f;
+    /** "brave" (default), "chrome", "edge" or "auto": which installed browser to use first (others are fallbacks). */
+    public String browser = "brave";
+    /** Path to chrome/msedge/brave. Empty = auto-detect. */
+    public String chromePath = "";
+    /** true = hidden Chrome (no window). Set false if the video does not play or has no sound. */
+    public boolean headless = true;
+    /** Set true if red and blue look swapped. */
+    public boolean swapRedBlue = false;
 
     public int height() { return Math.round(width / ASPECT); }
 

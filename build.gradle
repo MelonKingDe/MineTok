@@ -11,7 +11,6 @@ dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
-    // No compile dependency on the browser library: it is reached through reflection at runtime.
 }
 
 processResources {
@@ -25,31 +24,3 @@ java {
     sourceCompatibility = JavaVersion.VERSION_25
     targetCompatibility = JavaVersion.VERSION_25
 }
-
-// Builds menntdev/mcef-codec (Chromium with H.264/AAC, needed for TikTok videos)
-// and puts its jar next to this mod's jar in build/libs. You need BOTH jars in your mods folder.
-tasks.register('buildCodec') {
-    doLast {
-        try {
-            def dir = layout.buildDirectory.dir('codec-src').get().asFile
-            if (!dir.exists()) {
-                println "git clone exit: " + new ProcessBuilder('git', 'clone', '--depth', '1',
-                        'https://github.com/menntdev/mcef-codec.git', dir.absolutePath).inheritIO().start().waitFor()
-            }
-            def props = new File(dir, 'gradle.properties')
-            if (props.exists()) println "codec gradle.properties:\n" + props.text
-            println "codec build exit: " + new ProcessBuilder('bash', '-c', 'chmod +x gradlew && ./gradlew build -x test --no-daemon -q')
-                    .directory(dir).inheritIO().start().waitFor()
-            def jar = new File(dir, 'build/libs').listFiles()?.find { it.name.endsWith('.jar') && !it.name.contains('sources') }
-            println "CODEC JAR: ${jar}"
-            if (jar) {
-                def out = layout.buildDirectory.dir('libs').get().asFile
-                out.mkdirs()
-                java.nio.file.Files.copy(jar.toPath(), new File(out, jar.name).toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
-            }
-        } catch (Throwable t) {
-            println "codec build failed: ${t}"
-        }
-    }
-}
-tasks.named('build') { finalizedBy 'buildCodec' }
