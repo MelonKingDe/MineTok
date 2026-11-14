@@ -136,7 +136,7 @@ public class LayoutScreen extends Screen {
 
     @Override
     public boolean charTyped(CharacterEvent e) {
-        if (interact) { McefBridge.charTyped((char) e.codepoint(), e.modifiers()); return true; }
+        if (interact) { McefBridge.charTyped((char) e.codepoint(), 0); return true; }
         return super.charTyped(e);
     }
 
